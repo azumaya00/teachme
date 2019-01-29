@@ -15,36 +15,66 @@ require('auth.php');
 $dbFormData = getUser($_SESSION['user_id']);
 
 //記事ID取得
-$p_id = (!empty($_GET['p_id'])) ? $_GET['p_id'] : '' ;
+$t_id = (!empty($_GET['t_id'])) ? $_GET['t_id'] : '' ;
+//記事詳細取得
+$dbTopicData = getTopicDetail($t_id);
+debug('記事内容: '.print_r($dbTopicData, true));
+
 
 debug('画面表示処理終了<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
 ?>
 
 
 <?php
-$siteTitle = 'どうしてしめじはまずいのか';
+$siteTitle = $dbTopicData['title'];
 require('head.php'); ?>
 
 <?php require('header.php'); ?>
+
+<!-- 成功メッセージ表示タグここから -->
+<p id="show-msg" class="msg-modal" style="display:none">
+  <?php echo getSessionFlash('msg_success'); ?>
+</p>
+<!-- 成功メッセージ表示タグここまで -->
+
 <div id="contents" class="site-width">
   <article class="main-contents">
-    <h2 class="title">どうしてしめじはまずいのか</h2>
+    <h2 class="title"><?php echo sanitize($dbTopicData['title']); ?>
+    </h2>
     <div class="wrapper-topic wrapper-btm">
 
       <div class="poster main-poster">
-        <div class="poster-icon"><img src="./img/selamathariraya.png" alt="アイコン"></div>
+        <div class="poster-icon">
+          <?php
+     if (!empty($dbTopicData['userimg'])) {
+         echo '<img src="'.$dbTopicData['userimg'].'" alt="アイコン">';
+     } else {
+         echo '<i class="fas fa-user-circle guest-icon__small"></i>';
+     }
+     ?>
+        </div>
         <div class="poster-profile">
-          <span>しめじさん</span><br>11歳
+          <span><?php echo sanitize($dbTopicData['username']); ?>さん</span><br><?php echo getAge(sanitize($dbTopicData['birthday'])); ?>歳
         </div>
 
       </div>
       <div class="topic-contents">
-        <span class="date">2019年1月8日 08:06 <i class="fas fa-heart faborite"></i></span>
+        <span class="date"><?php echo formatDate(sanitize($dbTopicData['create_date'])); ?>
+          <i class="fas fa-heart faborite"></i></span>
         <div class="main-topic">
-          <p>テキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキストテキスト</p>
+          <p><?php echo $dbTopicData['contents']; ?>
+          </p>
           <div class="imgarea">
-            <img src="https://placehold.jp/200x150.png" alt="">
-            <img src="https://placehold.jp/200x150.png" alt="">
+            <a href="<?php echo sanitize($dbTopicData['img01']) ?>"
+              class="modal"><img src="<?php echo sanitize($dbTopicData['img01']) ?>"
+                alt="画像1" <?php if (empty(sanitize($dbTopicData['img01']))) {
+         echo 'style="display:none"';
+     } ?>></a>
+            <a href="<?php echo sanitize($dbTopicData['img02']) ?>"
+              class="modal"><img src="<?php echo sanitize($dbTopicData['img02']) ?>"
+                alt="画像1" <?php if (empty(sanitize($dbTopicData['img02']))) {
+         echo 'style="display:none"';
+     } ?>></a>
           </div>
 
         </div>
@@ -60,7 +90,7 @@ require('head.php'); ?>
           <div class="poster-profile">
             <span>えのきさん</span><br>45歳
           </div>
-          <div class="btn__yellow btn-small">なるほど！</div>
+          <div class="btn__yellow btn-small">いいね！</div>
           <br><span>5人</span>
         </div>
         <div class="wrapper-blank">
@@ -82,7 +112,7 @@ require('head.php'); ?>
           <div class="poster-profile">
             <span>しめじさん</span><br>11歳
           </div>
-          <div class="btn__yellow btn-small">なるほど！</div>
+          <div class="btn__yellow btn-small">いいね！</div>
           <br><span>5人</span>
         </div>
         <div class="wrapper-blank">
@@ -101,7 +131,14 @@ require('head.php'); ?>
 
     <h2 class="title">コメントを投稿する</h2>
     <div class="form-comment">
-      <form action="" method="post">
+
+      <div class="msgarea">
+        <?php if (!empty($err_msg['common'])) {
+         echo $err_msg['common'];
+     } ?>
+      </div>
+
+      <form action="" method="post" enctype="multipart/form-data">
         <label>コメント<span class="required">必須</span>
           <span></span>
           <textarea name="comment" id="" cols="30" rows="10"></textarea>
@@ -137,5 +174,10 @@ require('head.php'); ?>
 
   <?php require('sidebar.php'); ?>
 </div>
+
+<!-- ここからモーダル -->
+<img src="" id="modal-content">
+<div id="modal-overlay"></div>
+<!-- ここまでモーダル -->
 
 <?php require('footer.php');

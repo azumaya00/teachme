@@ -20,7 +20,8 @@ if (!empty($_POST)) {
     //変数定義
     $title = $_POST['topic_title'];
     $category = $_POST['category_id'];
-    $topic_contents = $_POST['topic_contents'];
+    //記事内容はサニタイズしたものに改行タグを挿入する
+    $topic_contents = nl2br(sanitize($_POST['topic_contents']));
     $img01 = (!empty($_FILES['img01']['name'])) ? uploadImg($_FILES['img01'], 'img01') : '';
     $img02 = (!empty($_FILES['img02']['name'])) ? uploadImg($_FILES['img02'], 'img02') : '';
 
@@ -55,9 +56,8 @@ if (!empty($_POST)) {
                     $_GET['t_id'] = $dbh->lastInsertId();
                     $t_id = $_GET['t_id'];
                     debug('掲示板のID: '.print_r($t_id, true));
-                    //マイページへ遷移
-                    //記事詳細が出来たらそちらへ遷移
-                    header("Location:mypage.php");
+                    //記事詳細へ遷移
+                    header("Location:topicdetail.php?t_id=".$t_id);
                 }
             } catch (Exception $e) {
                 error_log('エラー発生:' .$e->getMessage());
@@ -123,8 +123,11 @@ require('head.php'); ?>
           <textarea name="topic_contents" id="textcount" cols="30" rows="10"> <?php echo getFormData('topic_contents') ?></textarea>
         </label>
         <p class="textcounter"><span class="count_text">0</span>/2000</p>
-        <label>画像(.jpg .png .gif のみ、2MBまで)
-          <span></span>
+        <label class="<?php if (!empty($err_msg['img01']) || !empty($err_msg['img02'])) {
+        echo 'err';
+    } ?>">画像(.jpg
+          .png .gif のみ、2MBまで)
+          <span><?php echo getErrMsg('img01'); echo getErrMsg('img02') ; ?></span>
           <div class="wrapper-imgDrop">
             <div class="area-drop area-imgDrop__rectangle">
               <input type="hidden" name="MAX_FILE_SIZE" value="3145728">

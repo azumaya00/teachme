@@ -84,7 +84,7 @@ foreach ($dbCategoryData as $key => $val) {
       <ul class="topiclist">
         <?php
         foreach ($dbTopicData as $key => $val) {
-            echo '<li class="topictitle"><a href="topicdetail.php?p_id='.$val['topic_id'].'"><i class="fas fa-caret-square-right"></i>'.$val['title'].'</a></li>';
+            echo '<li class="topictitle"><a href="topicdetail.php?t_id='.$val['topic_id'].'"><i class="fas fa-caret-square-right"></i>'.$val['title'].'</a></li>';
         }
         ?>
       </ul>

@@ -317,14 +317,16 @@ function getTopicList($currentMinNum=1, $topicCategory, $sort, $span = 20)
     try {
         $dbh = dbConnect();
 
-        //ページング用
-        $sql = 'SELECT * FROM topic';
+        //idとタイトルを持ってくる
+        $sql = 'SELECT topic_id, title FROM topic WHERE delete_flg = 0';
         //検索とソート関係のはここ
         if (!empty($sort)) {
             switch ($sort) {
+                //記事古い順
                 case 1:
                 $sql .= ' ORDER BY topic_id ASC';
                 break;
+                //記事新しい順
                 case 2:
                 $sql .= ' ORDER BY topic_id DESC';
                 break;
@@ -340,6 +342,30 @@ function getTopicList($currentMinNum=1, $topicCategory, $sort, $span = 20)
             //全レコードを格納する
             $result = $stmt -> fetchAll();
             return $result;
+        } else {
+            return false;
+        }
+    } catch (Exception $e) {
+        debug('エラー発生: '.$e->getMessage());
+        $err_msg['common'] = MSG01;
+    }
+}
+
+//記事詳細を持ってくる
+//後でコメントも追加すること
+function getTopicDetail($t_id)
+{
+    debug('記事詳細を取得します');
+    debug('まだコメント部分は作って無いよ');
+    //DB接続
+    try {
+        $dbh = dbConnect();
+        $sql = 'SELECT t.title, t.contents, t.img01, t.img02, t.create_date, u.username, u.birthday, u.userimg FROM topic AS t LEFT JOIN users AS u ON t.user_id = u.user_id WHERE t.topic_id = :t_id AND t.delete_flg = 0' ;
+        $data = array(':t_id' => $t_id);
+        //クエリ実行
+        $stmt = queryPost($dbh, $sql, $data);
+        if ($stmt) {
+            return $stmt->fetch(PDO::FETCH_ASSOC);
         } else {
             return false;
         }
@@ -643,4 +669,21 @@ function pagenation($currentPageNum, $totalPageNum, $link = '', $pagenationNum =
     }
     echo '</ul>';
     echo '</div>';
+}
+
+//誕生日から年齢を算出
+function getAge($str)
+{
+    //現在日取得
+    $now = date("Ymd");
+    $birthdate = str_replace("-", "", $str);
+    $age = floor(($now - $birthdate)/10000);
+    return $age;
+}
+
+//日時フォーマット
+function formatDate($str)
+{
+    $date = new Datetime($str);
+    return $date->format('Y年m月d日 H:i:s');
 }
