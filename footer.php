@@ -49,6 +49,7 @@
       fileReader.readAsDataURL(file);
     });
 
+
     //成功メッセージ表示
     var $showMsg = $('#show-msg');
     var msg = $showMsg.text();
@@ -73,6 +74,31 @@
       }
 
     });
+
+    //詳細記事の画像拡大
+    $('.open-imgmodal').click(function() {
+      //画像URL取得
+      var src = $(this).attr('src');
+      //画像URLをモーダルモーダル部分に挿入
+      $('#imgmodal-content').attr('src', src);
+      $('#imgmodal-overlay').fadeIn();
+      $('#imgmodal-content').fadeIn();
+    });
+
+    //モーダル解除
+    $('#imgmodal-overlay').click(function() {
+      $('#imgmodal-overlay').fadeOut();
+      $('#imgmodal-content').fadeOut();
+    });
+
+    //カテゴリ・ソートを選択するとGET送信
+    $('.submit-select').change(function() {
+      $('#submit-form').submit();
+    });
+
+
+
+
 
 
 

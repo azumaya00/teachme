@@ -18,21 +18,21 @@ if (!empty($_SESSION['user_id'])) {
 $currentPageNum = (!empty($_GET['p'])) ? $_GET['p'] : 1;
 //カテゴリーとソートは後でここに
 //ページ数を直にいじった時はトップページへ
-//if (!is_int($currentPageNum)) {
-//    error_log('エラー発生: ページ指定に不正な値が入力されました');
-//    header("Location:topiclist.php");
-//}
+if (!is_int((int)$currentPageNum)) {
+    error_log('エラー発生: ページ指定に不正な値が入力されました');
+    header("Location:topiclist.php");
+}
 
 //表示20件で
 $listSpan = 20;
-//新しい記事から表示
-$sort = 2;
+//ソート、デフォルトは新しい記事から表示
+$sort = (!empty($_GET['sort'])) ? $_GET['sort'] : 2;
 //このページで最初に表示する記事は何番目か
 $currentMinNum = (($currentPageNum - 1) * $listSpan);
+//カテゴリ、デフォルトはなし
+$topicCategory = (!empty($_GET['c_id'])) ? $_GET['c_id'] : '';
 //総記事数と総ページ数を取得
 $dbTopicCount = getTopicCount();
-//カテゴリは最初は空
-$topicCategory = '';
 //記事リストを取得
 $dbTopicData = getTopicList($currentMinNum, $topicCategory, $sort);
 //カテゴリデータを取得
@@ -53,9 +53,9 @@ require('head.php'); ?>
   <ariticle class="main-contents">
     <div class="main-menu">
       <h2 class="title">投稿一覧</h2>
-      <form action="" method="post">
+      <form action="" method="get" id="submit-form">
         <label>カテゴリー
-          <select name="category" class="sortmenu">
+          <select name="category" class="sortmenu submit-select">
             <option value="0">選択して下さい</option>
             <?php
 foreach ($dbCategoryData as $key => $val) {
@@ -65,10 +65,16 @@ foreach ($dbCategoryData as $key => $val) {
           </select>
         </label>
         <label>ソート
-          <select name="sort" class="sortmenu">
-            <option value="0">選択して下さい</option>
-            <option value="1">テスト1</option>
-            <option value="2">テスト2</option>
+          <select name="sort" class="sortmenu submit-select">
+            <option value="0" <?php if (getFormData('sort', true) == 0) {
+     echo 'selected';
+ }?>>選択して下さい</option>
+            <option value="1" <?php if (getFormData('sort', true) == 1) {
+     echo 'selected';
+ }?>>古い順</option>
+            <option value="2" <?php if (getFormData('sort', true) == 2) {
+     echo 'selected';
+ }?>>新しい順</option>
           </select>
         </label>
       </form>

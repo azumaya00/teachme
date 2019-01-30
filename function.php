@@ -72,6 +72,7 @@ define('SUC02', 'パスワードを変更しました');
 define('SUC03', 'メールを送信しました');
 define('SUC04', 'パスワードを変更しました');
 define('SUC05', '記事を投稿しました');
+define('SUC06', 'コメントを投稿しました');
 
 //=====================================
 //グローバル変数
@@ -352,11 +353,9 @@ function getTopicList($currentMinNum=1, $topicCategory, $sort, $span = 20)
 }
 
 //記事詳細を持ってくる
-//後でコメントも追加すること
 function getTopicDetail($t_id)
 {
     debug('記事詳細を取得します');
-    debug('まだコメント部分は作って無いよ');
     //DB接続
     try {
         $dbh = dbConnect();
@@ -366,6 +365,28 @@ function getTopicDetail($t_id)
         $stmt = queryPost($dbh, $sql, $data);
         if ($stmt) {
             return $stmt->fetch(PDO::FETCH_ASSOC);
+        } else {
+            return false;
+        }
+    } catch (Exception $e) {
+        debug('エラー発生: '.$e->getMessage());
+        $err_msg['common'] = MSG01;
+    }
+}
+
+//コメントを持ってくる
+function getCommentList($t_id)
+{
+    debug('コメント情報を持って来ます');
+    //DB接続
+    try {
+        $dbh = dbConnect();
+        $sql = 'SELECT c.comment_id, c.comment, c.img01, c.img02, c.create_date, u.username, u.birthday, u.userimg FROM comment AS c LEFT JOIN users AS u ON c.user_id = u.user_id WHERE c.topic_id = :t_id AND c.delete_flg = 0';
+        $data = array(':t_id' => $t_id);
+        //クエリ実行
+        $stmt = queryPost($dbh, $sql, $data);
+        if ($stmt) {
+            return $stmt->fetchAll();
         } else {
             return false;
         }
@@ -436,8 +457,53 @@ function getFormData($str, $flg = false)
                 return sanitize($method[$str]);
             } else {
                 //POSTに情報が無い、もしくはDBと同じ情報が入っているときは
-                //SBの情報をサニタイズして渡す
+                //DBの情報をサニタイズして渡す
                 return sanitize($dbFormData[$str]);
+            }
+        }
+    } else {
+        //DBにユーザー情報が無い場合
+        //GETやPOSTに情報があればそれをサニタイズして表示
+        if (isset($method[$str])) {
+            return sanitize($method[$str]);
+        }
+    }
+}
+
+
+//フォーム入力保持コメント版
+function getCommentFormData($str, $flg = false)
+{
+    //フラグが立っていたらGET送信
+    //デフォルトはフラグ無し＝POST送信
+    if ($flg) {
+        $method = $_GET;
+    } else {
+        $method = $_POST;
+    }
+    //グローバル変数
+    //内容は各ページで定義
+    global $dbCommentFormData;
+    //DBにユーザー情報がある場合
+    if (!empty($dbCommentFormData)) {
+        //入力フォームにエラーがある場合
+        if (!empty($err_msg[$str])) {
+            //POSTないしGETにデータがあればサニタイズ
+            if (isset($method[$str])) {
+                return sanitize($method[$str]);
+            } else {
+                //データが無い場合はDBの情報を表示
+                return $dbCommentFormData[$str];
+            }
+        } else {
+            //POSTに情報がアリかつDBとPOSTの情報が違うときは
+            //POSTの情報をサニタイズして返す
+            if (isset($method[$str]) && $method[$str] !== $dbCommentFormData[$str]) {
+                return sanitize($method[$str]);
+            } else {
+                //POSTに情報が無い、もしくはDBと同じ情報が入っているときは
+                //DBの情報をサニタイズして渡す
+                return sanitize($dbCommentFormData[$str]);
             }
         }
     } else {

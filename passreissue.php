@@ -86,6 +86,7 @@ EOD;
                         //成功メッセ
                         $_SESSION['msg_success'] = SUC04;
                         debug('セッションの中身: '.print_r($_SESSION, true));
+                        session_write_close();
                         //ログインページへ
                         header("Location:login.php");
                     } else {
@@ -110,33 +111,33 @@ require('head.php'); ?>
 <?php require('header.php') ?>
 <!-- 成功メッセージ表示タグここから -->
 <p id="show-msg" class="msg-modal" style="display:none">
-  <?php echo getSessionFlash('msg_success'); ?>
+    <?php echo getSessionFlash('msg_success'); ?>
 </p>
 <!-- 成功メッセージ表示タグここまで -->
 
 <div id="contents" class="site-width">
-  <section id="main">
-    <h2 class="title">パスワード再発行</h2>
-    <div class="form-container">
-      <div class="msgarea">
-        <?php if (!empty($err_msg['common'])) {
+    <section id="main">
+        <h2 class="title">パスワード再発行</h2>
+        <div class="form-container">
+            <div class="msgarea">
+                <?php if (!empty($err_msg['common'])) {
     echo $err_msg['common'];
 } ?>
-      </div>
-      <div class="wrapper-form">
-        <p>Eメールに添付されている認証キーを入力して下さい</p>
-      </div>
-      <form action="" method="post">
-        <label class="<?php if (!empty($err_msg['authkey'])) {
+            </div>
+            <div class="wrapper-form">
+                <p>Eメールに添付されている認証キーを入力して下さい</p>
+            </div>
+            <form action="" method="post">
+                <label class="<?php if (!empty($err_msg['authkey'])) {
     echo 'err';
 } ?>">認証キー　<span><?php echo getErrMsg('authkey'); ?></span>
-          <input type="text" name="authkey">
-        </label>
-        <div class="btn-container">
-          <input type="submit" class="btn btn__yellow btn-mid" value="送信する"></div>
+                    <input type="text" name="authkey">
+                </label>
+                <div class="btn-container">
+                    <input type="submit" class="btn btn__yellow btn-mid" value="送信する"></div>
 
-      </form>
-    </div>
+            </form>
+        </div>
 </div>
 </section>
 
