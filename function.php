@@ -285,7 +285,7 @@ function getCategory()
 }
 
 //総記事数と総ページ数を取得
-function getTopicCount($span = 20)
+function getTopicCount($topicCategory, $span = 20)
 {
     debug('総記事数と総ページ数を取得します');
     try {
@@ -293,6 +293,9 @@ function getTopicCount($span = 20)
         //件数を持ってくる
         $sql = 'SELECT topic_id FROM topic';
         //検索とソート関係のはここ
+        if (!empty($topicCategory)) {
+            $sql .= ' WHERE category_id = '.$topicCategory;
+        }
         $data = array();
         //クエリ実行
         $stmt = queryPost($dbh, $sql, $data);
@@ -321,6 +324,9 @@ function getTopicList($currentMinNum=1, $topicCategory, $sort, $span = 20)
         //idとタイトルを持ってくる
         $sql = 'SELECT topic_id, title FROM topic WHERE delete_flg = 0';
         //検索とソート関係のはここ
+        if (!empty($topicCategory)) {
+            $sql .= ' AND category_id = '.$topicCategory;
+        }
         if (!empty($sort)) {
             switch ($sort) {
                 //記事古い順
@@ -395,6 +401,74 @@ function getCommentList($t_id)
         $err_msg['common'] = MSG01;
     }
 }
+
+//お気に入り登録されているかのチェック
+function isFavorite($t_id, $u_id)
+{
+    debug('お気に入り登録チェック');
+    try {
+        $dbh = dbConnect();
+        $sql = 'SELECT * FROM favorite WHERE topic_id = :t_id AND user_id = :u_id';
+        $data = array(':t_id' => $t_id, ':u_id' => $u_id);
+        //クエリ実行
+        $stmt = queryPost($dbh, $sql, $data);
+        if ($stmt->rowCount()) {
+            debug('お気に入り登録されています');
+            return true;
+        } else {
+            debug('お気に入り登録がありません');
+            return false;
+        }
+    } catch (Exception $e) {
+        debug('エラー発生: '.$e->getMessage());
+        $err_msg['common'] = MSG01;
+    }
+}
+
+//いいね登録されているかのチェック
+function isPopular($t_id, $c_id, $u_id)
+{
+    debug('いいねチェック');
+    try {
+        $dbh = dbConnect();
+        $sql = 'SELECT * FROM popular WHERE topic_id = :t_id AND comment_id = :c_id AND user_id = :u_id';
+        $data = array(':t_id' => $t_id, ':c_id' => $c_id, ':u_id' => $u_id);
+        //クエリ実行
+        $stmt = queryPost($dbh, $sql, $data);
+        if ($stmt->rowCount()) {
+            debug('いいねされています');
+            return true;
+        } else {
+            debug('いいねされていません');
+            return false;
+        }
+    } catch (Exception $e) {
+        debug('エラー発生: '.$e->getMessage());
+        $err_msg['common'] = MSG01;
+    }
+}
+
+//いいね数チェック
+function popularCount($t_id, $c_id)
+{
+    debug('いいね数チェック');
+    try {
+        //DB接続
+        $dbh = dbConnect();
+        $sql = 'SELECT * FROM popular WHERE topic_id = :t_id AND comment_id = :c_id ';
+        $data = array(':t_id' => $t_id, ':c_id' => $c_id);
+        //クエリ実行
+        $stmt = queryPost($dbh, $sql, $data);
+        if ($stmt) {
+            $result = $stmt->rowCount();
+            return $result;
+        }
+    } catch (Exception $e) {
+        debug('エラー発生: '.$e->getMessage());
+        $err_msg['common'] = MSG01;
+    }
+}
+
 
 //=====================================
 //メール送信
@@ -471,8 +545,8 @@ function getFormData($str, $flg = false)
 }
 
 
-//フォーム入力保持コメント版
-function getCommentFormData($str, $flg = false)
+//フォーム入力保持$dbFormDataがユーザ情報で使われていた時版
+function getSubFormData($str, $flg = false)
 {
     //フラグが立っていたらGET送信
     //デフォルトはフラグ無し＝POST送信
@@ -483,9 +557,9 @@ function getCommentFormData($str, $flg = false)
     }
     //グローバル変数
     //内容は各ページで定義
-    global $dbCommentFormData;
+    global $dbSubFormData;
     //DBにユーザー情報がある場合
-    if (!empty($dbCommentFormData)) {
+    if (!empty($dbSubFormData)) {
         //入力フォームにエラーがある場合
         if (!empty($err_msg[$str])) {
             //POSTないしGETにデータがあればサニタイズ
@@ -493,17 +567,17 @@ function getCommentFormData($str, $flg = false)
                 return sanitize($method[$str]);
             } else {
                 //データが無い場合はDBの情報を表示
-                return $dbCommentFormData[$str];
+                return $dbSubFormData[$str];
             }
         } else {
             //POSTに情報がアリかつDBとPOSTの情報が違うときは
             //POSTの情報をサニタイズして返す
-            if (isset($method[$str]) && $method[$str] !== $dbCommentFormData[$str]) {
+            if (isset($method[$str]) && $method[$str] !== $dbSubFormData[$str]) {
                 return sanitize($method[$str]);
             } else {
                 //POSTに情報が無い、もしくはDBと同じ情報が入っているときは
                 //DBの情報をサニタイズして渡す
-                return sanitize($dbCommentFormData[$str]);
+                return sanitize($dbSubFormData[$str]);
             }
         }
     } else {
@@ -719,19 +793,34 @@ function pagenation($currentPageNum, $totalPageNum, $link = '', $pagenationNum =
     echo '<div class="pagenation">';
     echo '<ul class="pagelist">';
     if ($currentPageNum != 1) {
-        echo '<li class="page-item"><a href="?p=1">◀</a></li>';
+        echo '<li class="page-item"><a href="';
+        if (!empty(appendGetParam())) {
+            echo appendGetParam(array('p')).'&p=1">◀</a></li>';
+        } else {
+            echo '?p=1">◀</a></li>';
+        }
     }
     for ($i = $minPageNum; $i <= $maxPageNum; $i++) {
         echo  '<li class="page-item';
         if ($currentPageNum == $i) {
             echo ' active';
         }
-        echo '"><a href="?p='.$i.'">'.$i.'</a></li>';
+        echo '"><a href="';
+        if (!empty(appendGetParam())) {
+            echo appendGetParam(array('p')).'&p='.$i.'">'.$i.'</a></li>';
+        } else {
+            echo '?p='.$i.'">'.$i.'</a></li>';
+        }
     }
 
 
     if ($currentPageNum != $maxPageNum && $maxPageNum > 1) {
-        echo '<li class="page-item"><a href="?p='.$maxPageNum.'">▶</a></li>';
+        echo '<li class="page-item"><a href="';
+        if (!empty(appendGetParam())) {
+            echo appendGetParam(array('p')).'&p='.$maxPageNum.'">▶</a></li>';
+        } else {
+            echo '?p='.$maxPageNum.'">▶</a></li>';
+        }
     }
     echo '</ul>';
     echo '</div>';
@@ -752,4 +841,21 @@ function formatDate($str)
 {
     $date = new Datetime($str);
     return $date->format('Y年m月d日 H:i:s');
+}
+
+//GETパラメータ生成
+function appendGetParam($_arr_del_key = array())
+{
+    //GETパラメータがあるとき
+    if (!empty($_GET)) {
+        //最初に?をつける
+        $str = '?';
+        foreach ($_GET as $key => $val) {
+            if (!in_array($key, $_arr_del_key, true)) {
+                $str .= $key.'='.$val.'&';
+            }
+        }
+        $str = mb_substr($str, 0, -1, "UTF-8");
+        return $str;
+    }
 }

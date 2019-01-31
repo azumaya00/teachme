@@ -18,10 +18,10 @@ $dbFormData = getUser($_SESSION['user_id']);
 $t_id = (!empty($_GET['t_id'])) ? $_GET['t_id'] : '' ;
 //記事詳細取得
 $dbTopicData = getTopicDetail($t_id);
-debug('記事内容: '.print_r($dbTopicData, true));
+//debug('記事内容: '.print_r($dbTopicData, true));
 //コメント取得
 $dbCommentData = getCommentList($t_id);
-debug('コメント内容: '.print_r($dbCommentData, true));
+//debug('コメント内容: '.print_r($dbCommentData, true));
 
 
 //POSTされていたとき
@@ -81,6 +81,7 @@ require('head.php'); ?>
 
 <?php require('header.php'); ?>
 
+
 <!-- 成功メッセージ表示タグここから -->
 <p id="show-msg" class="msg-modal" style="display:none">
   <?php echo getSessionFlash('msg_success'); ?>
@@ -114,7 +115,10 @@ require('head.php'); ?>
       </div>
       <div class="topic-contents">
         <span class="date"><?php echo formatDate(sanitize($dbTopicData['create_date'])); ?>
-          <i class="fas fa-heart faborite"></i></span>
+          <i class="fas fa-heart faborite js-click-favorite <?php if (isFavorite($t_id, $_SESSION['user_id'])) {
+         echo 'favorite-active';
+     } ?>"
+            data-t_id="<?php echo $t_id; ?>"></i></span>
         <div class="main-topic">
           <p><?php echo $dbTopicData['contents']; ?>
           </p>
@@ -153,8 +157,14 @@ require('head.php'); ?>
           <div class="poster-profile">
             <span><?php echo sanitize($val['username']); ?>さん</span><br><?php echo getAge(sanitize($val['birthday'])); ?>歳
           </div>
-          <div class="btn__yellow btn-small">いいね！</div>
-          <br><span>5人</span>
+
+          <!-- いいねボタンここから -->
+          <i class="fas fa-thumbs-up popular js-click-popular <?php if (isPopular($t_id, sanitize($val['comment_id']), $_SESSION['user_id'])) {
+         echo 'popular-active';
+     } ?>"
+            data-popular='{"t_id":"<?php echo $t_id ?>","c_id":"<?php echo sanitize($val['comment_id']); ?>"}'></i><span><?php echo popularCount($t_id, sanitize($val['comment_id'])) ?></span>
+          <!-- いいねボタンここまで -->
+
         </div>
         <div class="wrapper-blank">
           <span class="date"><?php echo formatDate(sanitize($val['create_date'])); ?></span>
@@ -199,10 +209,11 @@ require('head.php'); ?>
      } ?>">コメント<span
             class="required">必須</span>
           <span><?php echo getErrMsg('comment'); ?></span>
-          <textarea name="comment" id="" cols="30" rows="10"><?php if (!empty($_POST['comment'])) {
+          <textarea name="comment" id="textcount" cols="30" rows="10"><?php if (!empty($_POST['comment'])) {
          echo $_POST['comment'];
      } ?></textarea>
         </label>
+        <p class="textcounter"><span class="count_text">0</span>/2000</p>
         <label class="<?php if (!empty($err_msg['img01'])) {
          echo 'err';
      } ?>">画像(.jpg
@@ -212,8 +223,8 @@ require('head.php'); ?>
             <div class="area-drop area-imgDrop__rectangle">
               <input type="hidden" name="MAX_FILE_SIZE" value="3145728">
               <input type="file" name="img01" class="input-file input-file__rectangle">
-              <img src="<?php echo getCommentFormData('img01'); ?>"
-                class="prev-img prev-img__rectangle" <?php if (empty(getCommentFormData('img01'))) {
+              <img src="<?php echo getSubFormData('img01'); ?>"
+                class="prev-img prev-img__rectangle" <?php if (empty(getSubFormData('img01'))) {
          echo 'style="display:none"';
      } ?>>
               <p class="howto-text"><span>1</span><br>ここに画像を<br>ドラッグ＆ドロップ</p>
@@ -221,8 +232,8 @@ require('head.php'); ?>
             <div class="area-drop area-imgDrop__rectangle">
               <input type="hidden" name="MAX_FILE_SIZE" value="3145728">
               <input type="file" name="img02" class="input-file input-file__rectangle">
-              <img src="<?php echo getCommentFormData('img02'); ?>"
-                class="prev-img prev-img__rectangle" <?php if (empty(getCommentFormData('img02'))) {
+              <img src="<?php echo getSubFormData('img02'); ?>"
+                class="prev-img prev-img__rectangle" <?php if (empty(getSubFormData('img02'))) {
          echo 'style="display:none"';
      } ?>>
               <p class="howto-text"><span>2</span><br>ここに画像を<br>ドラッグ＆ドロップ</p>
