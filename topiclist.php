@@ -32,7 +32,8 @@ $currentMinNum = (($currentPageNum - 1) * $listSpan);
 //カテゴリ、デフォルトはなし
 $topicCategory = (!empty($_GET['c_id'])) ? $_GET['c_id'] : '';
 //総記事数と総ページ数を取得
-$dbTopicCount = getTopicCount();
+$dbTopicCount = getTopicCount($topicCategory);
+debug('記事数: '.print_r($dbTopicCount, true));
 //記事リストを取得
 $dbTopicData = getTopicList($currentMinNum, $topicCategory, $sort);
 //カテゴリデータを取得
@@ -55,24 +56,30 @@ require('head.php'); ?>
       <h2 class="title">投稿一覧</h2>
       <form action="" method="get" id="submit-form">
         <label>カテゴリー
-          <select name="category" class="sortmenu submit-select">
+          <select name="c_id" class="sortmenu submit-select">
             <option value="0">選択して下さい</option>
             <?php
 foreach ($dbCategoryData as $key => $val) {
-    echo '<option value="'.$val['category_id'].'">'.$val['category_name'].'</option>';
+    ?>
+            <option value="<?php echo $val['category_id'] ; ?>"
+              <?php if (getSubFormData('c_id', true) == $val['category_id']) {
+        echo 'selected';
+    } ?>><?php echo $val['category_name']; ?>
+            </option>;
+            <?php
 }
  ?>
           </select>
         </label>
         <label>ソート
           <select name="sort" class="sortmenu submit-select">
-            <option value="0" <?php if (getFormData('sort', true) == 0) {
+            <option value="0" <?php if (getSubFormData('sort', true) == 0) {
      echo 'selected';
  }?>>選択して下さい</option>
-            <option value="1" <?php if (getFormData('sort', true) == 1) {
+            <option value="1" <?php if (getSubFormData('sort', true) == 1) {
      echo 'selected';
  }?>>古い順</option>
-            <option value="2" <?php if (getFormData('sort', true) == 2) {
+            <option value="2" <?php if (getSubFormData('sort', true) == 2) {
      echo 'selected';
  }?>>新しい順</option>
           </select>
@@ -90,7 +97,10 @@ foreach ($dbCategoryData as $key => $val) {
       <ul class="topiclist">
         <?php
         foreach ($dbTopicData as $key => $val) {
-            echo '<li class="topictitle"><a href="topicdetail.php?t_id='.$val['topic_id'].'"><i class="fas fa-caret-square-right"></i>'.$val['title'].'</a></li>';
+            ?>
+        <li class="topictitle"><a href="topicdetail.php<?php echo (!empty(appendGetParam())) ? appendGetParam().'&t_id='.$val['topic_id'] : '?t_id='.$val['topic_id']; ?>"><i
+              class="fas fa-caret-square-right"></i><?php echo $val['title']; ?></a></li>
+        <?php
         }
         ?>
       </ul>
