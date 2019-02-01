@@ -12,8 +12,45 @@ debugLogStart();
 //ログイン認証
 require('auth.php');
 
+
+//変数定義
+$dbFormData = '';//ユーザ情報
+$currentMinNum = '';//このページで最初に表示する記事
+$topicCategory = '';//検索(カテゴリー)
+$sort = '';//記事投稿日順
+$listSpan = '';//1ページの記事数
+$dbTopicData = '';//記事リスト
+$dbCategoryData = '';//カテゴリー情報
+$dbMyTopicData = '';//自分の投稿した記事
+$dbMyCommentData = '';//自分の投稿した記事
+$dbMyFavoriteData= '';//お気に入り記事
+
+
 //DBからユーザー情報取得
 $dbFormData = getUser($_SESSION['user_id']);
+
+//投稿した記事一覧
+//最新記事から
+$currentMinNum = 0;
+//カテゴリーは無し
+$topicCategory = '';
+//ソートは新しい順
+$sort = 2;
+//表示5件で
+$listSpan = 5;
+
+//自分の投稿した記事を取得
+$dbMyTopicData = getMyTopicList($dbFormData['user_id'], $currentMinNum, $topicCategory, $sort, $listSpan);
+
+//コメントした記事を取得
+$dbMyCommentData = getMyCommentList($dbFormData['user_id'], $currentMinNum, $topicCategory, $sort, $listSpan);
+
+//お気に入り記事を取得
+$dbMyFavoriteData = getMyFavoriteList($dbFormData['user_id'], $currentMinNum, $topicCategory, $sort, $listSpan);
+
+
+
+debug('画面表示処理終了<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
  ?>
 
 <?php
@@ -25,7 +62,7 @@ require('head.php');
 
 <!-- 成功メッセージ表示タグここから -->
 <p id="show-msg" class="msg-modal" style="display:none">
-<?php echo getSessionFlash('msg_success'); ?>
+  <?php echo getSessionFlash('msg_success'); ?>
 </p>
 <!-- 成功メッセージ表示タグここまで -->
 
@@ -37,13 +74,14 @@ require('head.php');
     </div>
     <div class="wrapper-topic mytopic">
       <ul class="topiclist">
-        <li class="topictitle"><i class="fas fa-caret-square-right"></i>何やらとにかく色々分かりません助けて下さい！！（合計３０文字）</li>
-        <li class="topictitle"><i class="fas fa-caret-square-right"></i>何やらとにかく色々分かりません助けて下さい！！（合計３０文字）</li>
-        <li class="topictitle"><i class="fas fa-caret-square-right"></i>何やらとにかく色々分かりません助けて下さい！！（合計３０文字）</li>
-        <li class="topictitle"><i class="fas fa-caret-square-right"></i>何やらとにかく色々分かりません助けて下さい！！（合計３０文字）</li>
-        <li class="topictitle"><i class="fas fa-caret-square-right"></i>何やらとにかく色々分かりません助けて下さい！！（合計３０文字）</li>
+        <?php foreach ($dbMyTopicData as $key =>$val) {
+    ?>
+        <li class="topictitle"><i class="fas fa-caret-square-right"></i><a href="topicdetail.php?t_id=<?php echo $val['topic_id']; ?>"><?php echo $val['title']; ?></a></li>
+        <?php
+} ?>
+
       </ul>
-      <a href="#" class="more">もっと見る</a>
+      <a href="mytopiclist.php?mytype=1" class="more">もっと見る</a>
     </div>
 
     <div class="pickup">
@@ -51,13 +89,13 @@ require('head.php');
     </div>
     <div class="wrapper-topic mycomment">
       <ul class="topiclist">
-        <li class="topictitle"><i class="fas fa-caret-square-right"></i>何やらとにかく色々分かりません助けて下さい！！（合計３０文字）</li>
-        <li class="topictitle"><i class="fas fa-caret-square-right"></i>何やらとにかく色々分かりません助けて下さい！！（合計３０文字）</li>
-        <li class="topictitle"><i class="fas fa-caret-square-right"></i>何やらとにかく色々分かりません助けて下さい！！（合計３０文字）</li>
-        <li class="topictitle"><i class="fas fa-caret-square-right"></i>何やらとにかく色々分かりません助けて下さい！！（合計３０文字）</li>
-        <li class="topictitle"><i class="fas fa-caret-square-right"></i>何やらとにかく色々分かりません助けて下さい！！（合計３０文字）</li>
+        <?php foreach ($dbMyCommentData as $key =>$val) {
+        ?>
+        <li class="topictitle"><i class="fas fa-caret-square-right"></i><a href="topicdetail.php?t_id=<?php echo $val['topic_id']; ?>"><?php echo $val['title']; ?></a></li>
+        <?php
+    } ?>
       </ul>
-      <a href="#" class="more">もっと見る</a>
+      <a href="mytopiclist.php?mytype=2" class="more">もっと見る</a>
     </div>
 
     <div class="pickup">
@@ -65,13 +103,13 @@ require('head.php');
     </div>
     <div class="wrapper-topic favortopic">
       <ul class="topiclist">
-        <li class="topictitle"><i class="fas fa-caret-square-right"></i>何やらとにかく色々分かりません助けて下さい！！（合計３０文字）</li>
-        <li class="topictitle"><i class="fas fa-caret-square-right"></i>何やらとにかく色々分かりません助けて下さい！！（合計３０文字）</li>
-        <li class="topictitle"><i class="fas fa-caret-square-right"></i>何やらとにかく色々分かりません助けて下さい！！（合計３０文字）</li>
-        <li class="topictitle"><i class="fas fa-caret-square-right"></i>何やらとにかく色々分かりません助けて下さい！！（合計３０文字）</li>
-        <li class="topictitle"><i class="fas fa-caret-square-right"></i>何やらとにかく色々分かりません助けて下さい！！（合計３０文字）</li>
+        <?php foreach ($dbMyFavoriteData as $key =>$val) {
+        ?>
+        <li class="topictitle"><i class="fas fa-caret-square-right"></i><a href="topicdetail.php?t_id=<?php echo $val['topic_id']; ?>"><?php echo $val['title']; ?></a></li>
+        <?php
+    } ?>
       </ul>
-      <a href="#" class="more">もっと見る</a>
+      <a href="mytopiclist.php?mytype=3" class="more">もっと見る</a>
     </div>
 
 

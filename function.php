@@ -313,6 +313,51 @@ function getTopicCount($topicCategory, $span = 20)
     }
 }
 
+
+//自分の総記事数と総ページ数を取得
+function getMyTopicCount($u_id, $topicCategory, $span = 20)
+{
+    debug('自分の総記事数と総ページ数を取得します');
+    global $topicMyType;
+    try {
+        $dbh = dbConnect();
+        //件数を持ってくる
+        //自分の総記事
+        if ($topicMyType == 1) {
+            $sql = 'SELECT topic_id FROM topic WHERE user_id = :u_id AND delete_flg = 0';
+        } elseif ($topicMyType == 2) {
+            //自分のコメント記事
+            $sql = 'SELECT t.topic_id ,MAX(c.create_date) FROM topic AS t LEFT JOIN comment AS c ON t.topic_id = c.topic_id WHERE c.user_id = :u_id AND t.delete_flg = 0';
+        } elseif ($topicMyType == 3) {
+            //お気に入り記事
+            $sql = 'SELECT t.topic_id FROM topic AS t LEFT JOIN favorite AS f ON t.topic_id = f.topic_id WHERE f.user_id = :u_id AND t.delete_flg = 0';
+        }
+
+        //検索とソート関係のはここ
+        if (!empty($topicCategory)) {
+            $sql .= ' AND category_id = '.$topicCategory;
+        }
+        if ($topicMyType == 2) {
+            //コメント記事の場合はグループ化する
+            $sql .= ' GROUP BY t.topic_id';
+        }
+        $data = array(':u_id' => $u_id);
+        //クエリ実行
+        $stmt = queryPost($dbh, $sql, $data);
+        //総件数を変数に入れる
+        $result['total'] = $stmt->rowCount();
+        //総ページ数を変数に入れる
+        $result['total_page'] = ceil($result['total']/$span);
+        return $result;
+        if (!$stmt) {
+            return false;
+        }
+    } catch (Exception $e) {
+        debug('エラー発生: '.$e->getMessage());
+        $err_msg['common'] = MSG01;
+    }
+}
+
 //記事一覧取得
 function getTopicList($currentMinNum=1, $topicCategory, $sort, $span = 20)
 {
@@ -343,6 +388,169 @@ function getTopicList($currentMinNum=1, $topicCategory, $sort, $span = 20)
         $sql .= ' LIMIT '.$span.' OFFSET '.$currentMinNum;
         $data = array();
         debug('SQL文: '.$sql);
+        //クエリ実行
+        $stmt = queryPost($dbh, $sql, $data);
+        if ($stmt) {
+            //全レコードを格納する
+            $result = $stmt -> fetchAll();
+            return $result;
+        } else {
+            return false;
+        }
+    } catch (Exception $e) {
+        debug('エラー発生: '.$e->getMessage());
+        $err_msg['common'] = MSG01;
+    }
+}
+
+
+//自分の記事一覧取得
+function getMyTopicList($u_id, $currentMinNum=1, $topicCategory, $sort, $span = 20)
+{
+    debug('自分の記事一覧を取得します');
+    //DB接続
+    try {
+        $dbh = dbConnect();
+
+        //idとタイトルを持ってくる
+        $sql = 'SELECT topic_id, title FROM topic WHERE user_id = :u_id AND delete_flg = 0';
+        //検索とソート関係のはここ
+        if (!empty($topicCategory)) {
+            $sql .= ' AND category_id = '.$topicCategory;
+        }
+        if (!empty($sort)) {
+            switch ($sort) {
+                //記事古い順
+                case 1:
+                $sql .= ' ORDER BY topic_id ASC';
+                break;
+                //記事新しい順
+                case 2:
+                $sql .= ' ORDER BY topic_id DESC';
+                break;
+            }
+        }
+        //その後ろにSQL文を繋げる
+        $sql .= ' LIMIT '.$span.' OFFSET '.$currentMinNum;
+        $data = array(':u_id' => $u_id);
+        debug('SQL文: '.$sql);
+        //クエリ実行
+        $stmt = queryPost($dbh, $sql, $data);
+        if ($stmt) {
+            //全レコードを格納する
+            $result = $stmt -> fetchAll();
+            return $result;
+        } else {
+            return false;
+        }
+    } catch (Exception $e) {
+        debug('エラー発生: '.$e->getMessage());
+        $err_msg['common'] = MSG01;
+    }
+}
+
+//お気に入り記事一覧取得
+function getMyFavoriteList($u_id, $currentMinNum=1, $topicCategory, $sort, $span = 20)
+{
+    debug('お気に入り記事一覧を取得します');
+    //DB接続
+    try {
+        $dbh = dbConnect();
+
+        //idとタイトルを持ってくる
+        $sql = 'SELECT t.topic_id, t.title FROM topic AS t LEFT JOIN favorite AS f ON t.topic_id = f.topic_id WHERE f.user_id = :u_id AND t.delete_flg = 0';
+        //検索とソート関係のはここ
+        if (!empty($topicCategory)) {
+            $sql .= ' AND t.category_id = '.$topicCategory;
+        }
+        if (!empty($sort)) {
+            switch ($sort) {
+                //記事古い順
+                case 1:
+                $sql .= ' ORDER BY topic_id ASC';
+                break;
+                //記事新しい順
+                case 2:
+                $sql .= ' ORDER BY topic_id DESC';
+                break;
+            }
+        }
+        //その後ろにSQL文を繋げる
+        $sql .= ' LIMIT '.$span.' OFFSET '.$currentMinNum;
+        $data = array(':u_id' => $u_id);
+        debug('SQL文: '.$sql);
+        //クエリ実行
+        $stmt = queryPost($dbh, $sql, $data);
+        if ($stmt) {
+            //全レコードを格納する
+            $result = $stmt -> fetchAll();
+            return $result;
+        } else {
+            return false;
+        }
+    } catch (Exception $e) {
+        debug('エラー発生: '.$e->getMessage());
+        $err_msg['common'] = MSG01;
+    }
+}
+
+//自分がコメントした一覧取得
+function getMyCommentList($u_id, $currentMinNum=1, $topicCategory, $sort, $span = 20)
+{
+    debug('コメント記事一覧を取得します');
+    //DB接続
+    try {
+        $dbh = dbConnect();
+
+        //idとタイトルを持ってくる
+        $sql = 'SELECT t.topic_id, t.title, MAX(c.create_date) FROM topic AS t LEFT JOIN comment AS c ON t.topic_id = c.topic_id WHERE c.user_id = :u_id AND t.delete_flg = 0';
+        //検索とソート関係のはここ
+        if (!empty($topicCategory)) {
+            $sql .= ' AND t.category_id = '.$topicCategory;
+        }
+        //グループ化する
+        $sql .= ' GROUP BY t.topic_id';
+        if (!empty($sort)) {
+            switch ($sort) {
+                //記事古い順
+                case 1:
+                $sql .= ' ORDER BY topic_id ASC';
+                break;
+                //記事新しい順
+                case 2:
+                $sql .= ' ORDER BY topic_id DESC';
+                break;
+            }
+        }
+        //その後ろにSQL文を繋げる
+        $sql .= ' LIMIT '.$span.' OFFSET '.$currentMinNum;
+        $data = array(':u_id' => $u_id);
+        debug('SQL文: '.$sql);
+        //クエリ実行
+        $stmt = queryPost($dbh, $sql, $data);
+        if ($stmt) {
+            //全レコードを格納する
+            $result = $stmt -> fetchAll();
+            return $result;
+        } else {
+            return false;
+        }
+    } catch (Exception $e) {
+        debug('エラー発生: '.$e->getMessage());
+        $err_msg['common'] = MSG01;
+    }
+}
+
+//人気記事一覧取得
+//今回はコメントの多い記事を人気記事とする
+function getPopularTopic()
+{
+    debug('人気記事を取得します');
+    try {
+        //DB接続
+        $dbh = dbConnect();
+        $sql = 'SELECT t.topic_id, t.title FROM popular AS p LEFT JOIN topic AS t ON t.topic_id = p.topic_id GROUP BY p.topic_id ORDER BY count(p.topic_id) DESC LIMIT 5';
+        $data = array();
         //クエリ実行
         $stmt = queryPost($dbh, $sql, $data);
         if ($stmt) {
