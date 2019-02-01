@@ -14,17 +14,21 @@ if (!empty($_SESSION['user_id'])) {
     $dbFormData = getUser($_SESSION['user_id']);
 }
 
-//表示5件で
-$listSpan = 5;
-//ソートは新しい順
-$sort = 2;
-//最新記事から5記事分
+//新着記事
+//最新記事から
 $currentMinNum = 0;
 //カテゴリーは無し
 $topicCategory = '';
+//ソートは新しい順
+$sort = 2;
+//表示5件で
+$listSpan = 5;
 
 //新着記事リストを引っ張ってくる
 $dbNewTopicData = getTopicList($currentMinNum, $topicCategory, $sort, $listSpan);
+
+//人気記事はコメントの多い記事を持ってくる
+$dbPopularTopicData = getPopularTopic();
 
 debug('画面表示処理終了<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
 ?>
@@ -57,13 +61,12 @@ require('head.php'); ?>
     </div>
     <div class="wrapper-topic populertopic">
       <ul class="topiclist">
-        <li class="topictitle"><i class="fas fa-caret-square-right"></i>何やらとにかく色々分かりません助けて下さい！！（合計３０文字）</li>
-        <li class="topictitle"><i class="fas fa-caret-square-right"></i>何やらとにかく色々分かりません助けて下さい！！（合計３０文字）</li>
-        <li class="topictitle"><i class="fas fa-caret-square-right"></i>何やらとにかく色々分かりません助けて下さい！！（合計３０文字）</li>
-        <li class="topictitle"><i class="fas fa-caret-square-right"></i>何やらとにかく色々分かりません助けて下さい！！（合計３０文字）</li>
-        <li class="topictitle"><i class="fas fa-caret-square-right"></i>何やらとにかく色々分かりません助けて下さい！！（合計３０文字）</li>
+        <?php
+        foreach ($dbPopularTopicData as $key => $val) {
+            echo '<li class="topictitle"><a href="topicdetail.php?t_id='.$val['topic_id'].'"><i class="fas fa-caret-square-right"></i>'.$val['title'].'</a></li>';
+        }
+        ?>
       </ul>
-      <a href="#" class="more">もっと見る</a>
     </div>
 
 

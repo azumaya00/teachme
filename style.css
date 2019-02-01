@@ -282,7 +282,7 @@ h2.title::after{
 
 
 .main-menu label{
-  width: 150px;
+  width: 120px;
   margin-left: 30px;
   margin-bottom: 10px;
   font-size: 12px;
@@ -477,6 +477,10 @@ float: left;
   font-size: 22px;
 }
 
+.faborite:hover{
+  cursor: pointer;
+}
+
 .favorite-active{
   color: #ff9999;
 }
@@ -485,6 +489,10 @@ float: left;
   color: #999999;
   font-size: 22px;
   margin-right: 5px;
+}
+
+.popular:hover{
+  cursor: pointer;
 }
 
 .popular-active{
@@ -761,7 +769,7 @@ input[type="submit"]:hover{
 }
 
 .main-menu select{
-  width: 150px;
+  width: 120px;
   height: 30px;
   border: 1px #ccc solid;
   font-size: 12px;

@@ -8,6 +8,18 @@ debug('記事一覧ページ');
 debug('「「「「「「「「「「「「「「「「「「「「「「「「「「「「「「「「');
 debugLogStart();
 
+//変数定義
+$dbFormData = '';//ユーザ情報
+$currentPageNum = '';//現在のページ
+$currentMinNum = '';//このページで最初に表示する記事
+$topicCategory = '';//検索(カテゴリー)
+$sort = '';//記事投稿日順
+$listSpan = '';//1ページの記事数
+$dbTopicCount = '';//総記事数と総ページ数
+$dbTopicData = '';//記事リスト
+$dbCategoryData = '';//カテゴリー情報
+
+
 //ログイン認証はなし
 if (!empty($_SESSION['user_id'])) {
     //ログイン時はDBからユーザー情報取得
@@ -16,7 +28,6 @@ if (!empty($_SESSION['user_id'])) {
 
 //現在のページ
 $currentPageNum = (!empty($_GET['p'])) ? $_GET['p'] : 1;
-//カテゴリーとソートは後でここに
 //ページ数を直にいじった時はトップページへ
 if (!is_int((int)$currentPageNum)) {
     error_log('エラー発生: ページ指定に不正な値が入力されました');
@@ -25,19 +36,21 @@ if (!is_int((int)$currentPageNum)) {
 
 //表示20件で
 $listSpan = 20;
-//ソート、デフォルトは新しい記事から表示
-$sort = (!empty($_GET['sort'])) ? $_GET['sort'] : 2;
 //このページで最初に表示する記事は何番目か
 $currentMinNum = (($currentPageNum - 1) * $listSpan);
 //カテゴリ、デフォルトはなし
 $topicCategory = (!empty($_GET['c_id'])) ? $_GET['c_id'] : '';
+//日付、デフォルトは新しい記事から表示
+$sort = (!empty($_GET['sort'])) ? $_GET['sort'] : 2;
 //総記事数と総ページ数を取得
 $dbTopicCount = getTopicCount($topicCategory);
 debug('記事数: '.print_r($dbTopicCount, true));
-//記事リストを取得
-$dbTopicData = getTopicList($currentMinNum, $topicCategory, $sort);
 //カテゴリデータを取得
 $dbCategoryData = getCategory();
+
+//記事リストを取得
+$dbTopicData = getTopicList($currentMinNum, $topicCategory, $sort);
+
 
 
 debug('画面表示処理終了<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
@@ -54,6 +67,8 @@ require('head.php'); ?>
   <ariticle class="main-contents">
     <div class="main-menu">
       <h2 class="title">投稿一覧</h2>
+
+      <!-- 検索ここから -->
       <form action="" method="get" id="submit-form">
         <label>カテゴリー
           <select name="c_id" class="sortmenu submit-select">
@@ -71,7 +86,8 @@ foreach ($dbCategoryData as $key => $val) {
  ?>
           </select>
         </label>
-        <label>ソート
+
+        <label>日付
           <select name="sort" class="sortmenu submit-select">
             <option value="0" <?php if (getSubFormData('sort', true) == 0) {
      echo 'selected';
@@ -85,10 +101,11 @@ foreach ($dbCategoryData as $key => $val) {
           </select>
         </label>
       </form>
+      <!-- 検索ここまで -->
 
-      <!-- ここからページネーション -->
+      <!-- ページネーションここから -->
       <?php pagenation($currentPageNum, $dbTopicCount['total_page']); ?>
-      <!-- ここからページネーション -->
+      <!-- ページネーションここまで -->
 
 
     </div>
@@ -107,9 +124,9 @@ foreach ($dbCategoryData as $key => $val) {
     </div>
     <!-- 記事一覧ここまで -->
 
-    <!-- ここからページネーション -->
+    <!-- ページネーションここから -->
     <?php pagenation($currentPageNum, $dbTopicCount['total_page']); ?>
-    <!-- ここからページネーション -->
+    <!-- ページネーションここまで -->
 
 
 

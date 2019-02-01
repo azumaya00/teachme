@@ -11,9 +11,14 @@ debugLogStart();
 //ログイン認証
 require('auth.php');
 
+//変数定義
+$dbFormData = '';//ユーザ情報
+$t_id = '';//記事ID
+$dbTopicData = '';//記事詳細
+$dbCommentData = '';//コメント詳細
+
 //DBからユーザー情報取得
 $dbFormData = getUser($_SESSION['user_id']);
-
 //記事ID取得
 $t_id = (!empty($_GET['t_id'])) ? $_GET['t_id'] : '' ;
 //記事詳細取得
@@ -95,7 +100,7 @@ require('head.php'); ?>
     <h2 class="title"><?php echo sanitize($dbTopicData['title']); ?>
     </h2>
 
-    <!-- ここから主記事 -->
+    <!-- 主記事ここから -->
     <div class="wrapper-topic wrapper-btm">
 
       <div class="poster main-poster">
@@ -137,9 +142,9 @@ require('head.php'); ?>
       </div>
 
     </div>
-    <!-- ここまで主記事 -->
+    <!-- 主記事ここまで -->
 
-    <!-- ここからコメント -->
+    <!-- コメントここから -->
     <section class="commentarea">
       <?php foreach ($dbCommentData as $key => $val) {
          ?>
@@ -191,7 +196,7 @@ require('head.php'); ?>
 
 
     </section>
-    <!-- ここまでコメント -->
+    <!-- コメントここまで -->
 
 
     <h2 class="title">コメントを投稿する</h2>
