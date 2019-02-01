@@ -59,7 +59,7 @@ if (!empty($_POST)) {
                         debug('クエリ成功です');
 
                         //メール送信
-                        $from = 'riekubocchi@gmail.com';
+                        $from = 'test@gmail.com';
                         $to = $_SESSION['auth_email'];
                         $subject = 'パスワードを再発行しました | TeachMe!';
                         $comment = <<<EOD

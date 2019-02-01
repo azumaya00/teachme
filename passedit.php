@@ -67,7 +67,7 @@ if (!empty($_POST)) {
                     $_SESSION['msg_success'] = SUC02;
                     //メール送信準備
                     $username = $dbFormData['username'];
-                    $from = 'riekubocchi@gmail.com';
+                    $from = 'test@gmail.com';
                     $to = $dbFormData['email'];
                     $subject = 'パスワードを変更しました | TeachMe!';
                     $comment = <<<EOD
@@ -106,42 +106,42 @@ require('head.php');
 <?php require('header.php'); ?>
 
 <div id="contents" class="site-width">
-  <section id="main">
-    <h2 class="title">パスワード変更</h2>
-    <div class="form-container">
-      <div class="msgarea">
-        <?php if (!empty($err_msg['common'])) {
+    <section id="main">
+        <h2 class="title">パスワード変更</h2>
+        <div class="form-container">
+            <div class="msgarea">
+                <?php if (!empty($err_msg['common'])) {
     echo $err_msg['common'];
 } ?>
-      </div>
-      <form action="" method="post">
-        <label class="<?php if (!empty($err_msg['oldPass'])) {
+            </div>
+            <form action="" method="post">
+                <label class="<?php if (!empty($err_msg['oldPass'])) {
     echo 'err';
 } ?>">現在のパスワード　<span><?php echo getErrMsg('oldPass'); ?></span>
-          <input type="password" name="oldPass" value="<?php if (!empty($_POST['oldPass'])) {
+                    <input type="password" name="oldPass" value="<?php if (!empty($_POST['oldPass'])) {
     echo $_POST['oldPass'];
 } ?>">
-        </label>
-        <label class="<?php if (!empty($err_msg['newPass'])) {
+                </label>
+                <label class="<?php if (!empty($err_msg['newPass'])) {
     echo 'err';
 } ?>">新しいパスワード　<span><?php echo getErrMsg('newPass'); ?></span>
-          <input type="password" name="newPass" value="<?php if (!empty($_POST['newPass'])) {
+                    <input type="password" name="newPass" value="<?php if (!empty($_POST['newPass'])) {
     echo $_POST['newPass'];
 } ?>">
-        </label>
-        <label class="<?php if (!empty($err_msg['newPass_re'])) {
+                </label>
+                <label class="<?php if (!empty($err_msg['newPass_re'])) {
     echo 'err';
 } ?>">新しいパスワード(再入力)　<span><?php echo getErrMsg('newPass_re'); ?></span>
-          <input type="password" name="newPass_re" value="<?php if (!empty($_POST['newPass_re'])) {
+                    <input type="password" name="newPass_re" value="<?php if (!empty($_POST['newPass_re'])) {
     echo $_POST['newPass_re'];
 } ?>">
-        </label>
-        <div class="btn-container">
-          <input type="submit" class="btn btn__yellow btn-mid" value="変更する">
+                </label>
+                <div class="btn-container">
+                    <input type="submit" class="btn btn__yellow btn-mid" value="変更する">
+                </div>
         </div>
-    </div>
 
-  </section>
+    </section>
 </div>
 
 <?php require('footer.php');

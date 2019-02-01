@@ -46,7 +46,7 @@ if (!empty($_POST)) {
                     //認証キー作成
                     $auth_key = makeRandKey();
                     //メール送信
-                    $from = 'riekubocchi@gmail.com';
+                    $from = 'test@gmail.com';
                     $to = $email;
                     $subject = 'パスワード再発行認証キーのお知らせ | TeachMe!';
                     $comment = <<<EOD
