@@ -1,7 +1,7 @@
 teachme
 ====
 
-Overview
+## Overview
 シンプルな会員制掲示板サービスです。
 
 ## Description
