@@ -549,7 +549,7 @@ function getPopularTopic()
     try {
         //DB接続
         $dbh = dbConnect();
-        $sql = 'SELECT t.topic_id, t.title FROM popular AS p LEFT JOIN topic AS t ON t.topic_id = p.topic_id GROUP BY p.topic_id ORDER BY count(p.topic_id) DESC LIMIT 5';
+        $sql = 'SELECT t.topic_id, t.title FROM comment AS c LEFT JOIN topic AS t ON t.topic_id = c.topic_id GROUP BY c.topic_id ORDER BY count(c.topic_id) DESC LIMIT 5';
         $data = array();
         //クエリ実行
         $stmt = queryPost($dbh, $sql, $data);
